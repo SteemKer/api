@@ -54,7 +54,6 @@ app.use(jwt({
 app.post("/api/auth/code", async (req, res) => {
     const access_token = req.query.access_token;
     const refresh_token = req.query.refresh_token;
-    const redirectUri = req.query.redirectUri;
 
     try {
         const user = await oauth.getUser(access_token);
@@ -75,7 +74,7 @@ app.get("/api/users/@me", async (req, res) => {
         try {
             const { id, username, discriminator, avatar } = await client.getRESTUser(req.user.id);
 
-            return res.json({ id, username, discriminator, avatar: !!avatar ? `https://cdn.discordapp.com/avatars/${id}/${avatar}.png` : "https://cdn.discordapp.com/embed/avatars/0.png" });
+            return res.json({ id, username, discriminator, avatar: !!avatar ? `https://cdn.discordapp.com/avatars/${id}/${avatar}.webp` : "https://cdn.discordapp.com/embed/avatars/0.png" });
         } catch (error) {
             console.log(error);
             res.status(404).send("User not found");
