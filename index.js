@@ -75,7 +75,7 @@ app.get("/api/users/@me", async (req, res) => {
         try {
             const { id, username, discriminator, avatar } = await client.getRESTUser(req.user.id);
 
-            return res.json({ id, username, discriminator, avatar: !!avatar ? `https://cdn.discordapp.com/${avatar}.png` : "https://cdn.discordapp.com/embed/avatars/0.png" });
+            return res.json({ id, username, discriminator, avatar: !!avatar ? `https://cdn.discordapp.com/avatars/${id}/${avatar}.png` : "https://cdn.discordapp.com/embed/avatars/0.png" });
         } catch (error) {
             console.log(error);
             res.status(404).send("User not found");
