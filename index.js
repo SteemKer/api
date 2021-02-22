@@ -34,6 +34,7 @@ const client = new Client(discordToken, {
 });
 const app = express();
 const db = new Database();
+db.init().then();
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -91,15 +92,25 @@ app.get("/api/users/@me", async (req, res) => {
 
 app.get("/api/stickers/@me", async (req, res) => {
     if (req.user && whitelisted.includes(req.user.id)) {
-        try {
-            const packs = await db.getUserPacks(req.user.id);
-            res.json(packs);
-            return
-        } catch (error) {
-            console.log(error);
-            res.status(500).send("we ran out of cookies");
-            return
+        if(req.query && req.query.pack_id) {
+            const data = await db.getPack(req.query.pack_id, req.user.id);
+            if(data) {
+                return res.json(data);
+            }
+
+            return res.status(404).send({"sticker": "not found", "pack_id": req.query.pack_id})
         }
+
+        return (await handleRawStickers(res));
+    } else {
+        res.status(401).send("unauthorized");
+        return
+    }
+});
+
+app.get("/api/stickers/@me", async (req, res) => {
+    if (req.user && whitelisted.includes(req.user.id)) {
+        
     } else {
         res.status(401).send("unauthorized");
         return
@@ -111,8 +122,17 @@ app.get("/assets/login", async (req, res) => {
     return res.sendFile(join(__dirname, "assets", "logo.png"))
 });
 
-client.connect();
+function handleRawStickers(res) {
+    try {
+            const packs = await db.getUserPacks(req.user.id);
+            res.json(packs);
+            return
+        } catch (error) {
+            console.log(error);
+            res.status(500).send("we ran out of cookies");
+            return
+        }
+}
 
-db.init().then(() => {
-    app.listen(2217, () => console.log("Started"));
-});
+client.connect();
+app.listen(2217, () => console.log("Started"));
