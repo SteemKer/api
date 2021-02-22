@@ -122,7 +122,7 @@ app.get("/assets/login", async (req, res) => {
     return res.sendFile(join(__dirname, "assets", "logo.png"))
 });
 
-function handleRawStickers(res) {
+async function handleRawStickers(res) {
     try {
             const packs = await db.getUserPacks(req.user.id);
             res.json(packs);
