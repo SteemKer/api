@@ -4,7 +4,9 @@ const jwt = require('express-jwt');
 const token = require('jsonwebtoken');
 const { join } = require("path");
 const { Client } = require("eris")
+const Database = require("./Database");
 const { secret, clientId, clientSecret, discordToken } = require("./config.json");
+const { whitelisted } = require("./whitelisted.json");
 
 const oauth = new Auth({ clientId, clientSecret });
 const client = new Client(discordToken, {
@@ -31,6 +33,7 @@ const client = new Client(discordToken, {
     }, restMode: true
 });
 const app = express();
+const db = new Database();
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -70,7 +73,7 @@ app.post("/api/auth/code", async (req, res) => {
 
 
 app.get("/api/users/@me", async (req, res) => {
-    if (req.user) {
+    if (req.user && whitelisted.includes(req.user.id)) {
         try {
             const { id, username, discriminator, avatar } = await client.getRESTUser(req.user.id);
 
@@ -86,10 +89,30 @@ app.get("/api/users/@me", async (req, res) => {
     }
 });
 
+app.get("/api/stickers/@me", async (req, res) => {
+    if (req.user && whitelisted.includes(req.user.id)) {
+        try {
+            const packs = await db.getUserPacks(req.user.id);
+            res.json(packs);
+            return
+        } catch (error) {
+            console.log(error);
+            res.status(500).send("we ran out of cookies");
+            return
+        }
+    } else {
+        res.status(401).send("unauthorized");
+        return
+    }
+});
+
 // static stuff
 app.get("/assets/login", async (req, res) => {
-    return res.sendFile(join(__dirname ,"assets", "logo.png"))
+    return res.sendFile(join(__dirname, "assets", "logo.png"))
 });
 
 client.connect();
-app.listen(2217, () => console.log("Started"));
+
+db.init().then(() => {
+    app.listen(2217, () => console.log("Started"));
+});
