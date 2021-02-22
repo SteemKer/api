@@ -101,16 +101,7 @@ app.get("/api/stickers/@me", async (req, res) => {
             return res.status(404).send({"sticker": "not found", "pack_id": req.query.pack_id})
         }
 
-        return (await handleRawStickers(res));
-    } else {
-        res.status(401).send("unauthorized");
-        return
-    }
-});
-
-app.get("/api/stickers/@me", async (req, res) => {
-    if (req.user && whitelisted.includes(req.user.id)) {
-        
+        return (await handleRawStickers(req, res));
     } else {
         res.status(401).send("unauthorized");
         return
@@ -122,7 +113,7 @@ app.get("/assets/login", async (req, res) => {
     return res.sendFile(join(__dirname, "assets", "logo.png"))
 });
 
-async function handleRawStickers(res) {
+async function handleRawStickers(res, res) {
     try {
             const packs = await db.getUserPacks(req.user.id);
             res.json(packs);
