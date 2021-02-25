@@ -92,13 +92,15 @@ app.get("/api/users/@me", async (req, res) => {
 
 app.get("/api/stickers/@me", async (req, res) => {
     if (req.user && whitelisted.includes(req.user.id)) {
-        if(req.query && req.query.pack_id) {
+        if (req.query && req.query.pack_id) {
             const data = await db.getPack(req.query.pack_id, req.user.id);
-            if(data) {
-                return res.json(data);
+            const { id, username, discriminator, avatar } = await client.getRESTUser(req.user.id);
+            const user = { id, username, discriminator, avatar: !!avatar ? `https://cdn.discordapp.com/avatars/${id}/${avatar}.webp` : "https://cdn.discordapp.com/embed/avatars/0.png" };
+            if (data) {
+                return res.json({ data, user });
             }
 
-            return res.status(404).send({"sticker": "not found", "pack_id": req.query.pack_id})
+            return res.status(404).send({ "sticker": "not found", "pack_id": req.query.pack_id })
         }
 
         return (await handleRawStickers(req, res));
@@ -115,14 +117,14 @@ app.get("/assets/login", async (req, res) => {
 
 async function handleRawStickers(req, res) {
     try {
-            const packs = await db.getUserPacks(req.user.id);
-            res.json(packs);
-            return
-        } catch (error) {
-            console.log(error);
-            res.status(500).send("we ran out of cookies");
-            return
-        }
+        const packs = await db.getUserPacks(req.user.id);
+        res.json(packs);
+        return
+    } catch (error) {
+        console.log(error);
+        res.status(500).send("we ran out of cookies");
+        return
+    }
 }
 
 client.connect();
